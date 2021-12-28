@@ -3,30 +3,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// A structure to represent an adjacency list node
 struct AdjListNode {
     int dest;
     int weight;
     struct AdjListNode *next;
 };
 
-// A structure to represent an adjacency list
 struct Node {
     int id;
     struct AdjListNode *head;
     struct Node *next;
 };
 
-// A structure to represent a graph. A graph
-// is an array of adjacency lists.
-// Size of array will be V (number of vertices
-// in graph)
 struct Graph {
     int V;
     struct Node *head;
 };
 
-// A utility function to create a new adjacency list node
 struct AdjListNode *newAdjListNode(int dest, int weight) {
     struct AdjListNode *newNode =
             (struct AdjListNode *) malloc(sizeof(struct AdjListNode));
@@ -36,7 +29,6 @@ struct AdjListNode *newAdjListNode(int dest, int weight) {
     return newNode;
 }
 
-// A utility function that creates a graph of V vertices
 struct Graph *createGraph(int V) {
     struct Graph *graph = (struct Graph *) malloc(sizeof(struct Graph));
     graph->V = V;
@@ -60,10 +52,6 @@ struct Graph *createGraph(int V) {
             p->next = temp;
         }
     }
-
-
-    // Initialize each adjacency list as empty by
-    // making head as NULL
 
     return graph;
 }
@@ -109,6 +97,11 @@ void addNode(struct Graph *graph, int id) {
     newNode->id = id;
     newNode->next = NULL;
     newNode->head = NULL;
+    if (graph->head == NULL){
+        graph->head = newNode;
+        graph->V ++;
+        return;
+    }
     while (temp->next) {
         if (temp->id == id) {
             struct AdjListNode *currEdge = temp->head;
@@ -131,9 +124,15 @@ void addNode(struct Graph *graph, int id) {
 }
 
 void deleteNode(struct Graph *graph, int id) {
+    struct Node *head = graph->head;
+    if (graph->head->id == id) {
+        graph->head = graph->head->next;
+        head = NULL;
+        return;
+    }
     struct Node *curr = graph->head;
     struct Node *prev = graph->head;
-    while (curr->next) {
+    while (curr) {
         prev = curr;
         curr = curr->next;
         if (curr->id == id) {
@@ -158,43 +157,80 @@ void deleteNode(struct Graph *graph, int id) {
                 curr = NULL;
                 free(curr);
                 graph->V--;
+                break;
             }
         }
-        struct Node *currNode = graph->head;
-        while (curr){
+    }
+    struct Node *currNode = graph->head;
+    while (currNode) {
+        if (currNode->head != NULL) {
             struct AdjListNode *currEdge = currNode->head;
+            struct AdjListNode *prevEdge = currNode->head;
+            while (currEdge) {
+                if (currEdge->dest == id) {
+                    if (currEdge == currNode->head && currEdge->next == NULL){
+                        free(currNode->head);
+                        currNode->head = NULL;
+                        break;
+                    }
+                    if (prevEdge != currEdge){
+                        prevEdge->next = currEdge->next;
+                    }else {
+                        currNode->head = currEdge->next;
+                    }
+                    free(currEdge);
+                    currEdge = NULL;
+                    break;
+                }
+                prevEdge = currEdge;
+                currEdge = currEdge->next;
+            }
+
         }
+        currNode = currNode->next;
     }
     return;
 }
-//void printGraph(struct Graph* graph)
-//{
-//    int v;
-//    for (v = 0; v < graph->V; ++v)
-//    {
-//        struct AdjListNode* pCrawl = graph->array[v].head;
-//        printf("\n Adjacency list of vertex %d\n head ", v);
-//        while (pCrawl)
-//        {
-//            printf("-> %d", pCrawl->dest);
-//            pCrawl = pCrawl->next;
-//        }
-//        printf("\n");
-//    }
-//}
 
-// Driver program to test above functions
+void deleteGraph(struct Graph *graph){
+    struct Node *currNode = graph->head;
+    struct Node *prevNode = graph->head;
+    while (currNode){
+        struct AdjListNode *currEdge = currNode->head;
+        struct AdjListNode *prevEdge = currNode->head;
+
+        while (currEdge){
+            prevEdge = currEdge;
+            currEdge = currEdge->next;
+            free(prevEdge);
+        }
+        currNode->head = NULL;
+
+        prevNode = currNode;
+        currNode = currNode->next;
+        free(prevNode);
+    }
+    graph->head = NULL;
+    graph->V =0;
+    realloc(graph , sizeof(graph));
+}
+
 int main() {
-    // create the graph given in above fugure
     int V = 5;
     struct Graph *graph = createGraph(V);
     addEdge(graph, 2, 3, 8);
+    addEdge(graph, 2, 4, 8);
+    addEdge(graph, 2, 5, 8);
     addEdge(graph, 3, 1, 8);
     addEdge(graph, 3, 0, 8);
     addNode(graph, 5);
-    addNode(graph,3);
+    addNode(graph, 3);
+    deleteNode(graph, 3);
+    deleteGraph(graph);
 
+    printf("%d" , graph->V);
 
-    printf("%d", graph->head->id);
+    addNode(graph, 0 );
+    printf("LOL");
     return 0;
 }

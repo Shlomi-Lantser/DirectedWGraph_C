@@ -5,6 +5,8 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include "PriorityQueue.h"
+#include <limits.h>
 
 struct AdjListNode {
     int dest;
@@ -14,6 +16,8 @@ struct AdjListNode {
 
 struct Node {
     int id;
+    int priority;
+    int visited;
     struct AdjListNode *head;
     struct Node *next;
 }; //v
@@ -23,6 +27,16 @@ struct Graph {
     struct Node *head;
 }; //v
 
+struct Node *nodeCopy(struct Node *nodeToCopy){
+    struct Node *result = (struct Node*) malloc(sizeof(struct Node));
+    result->head = nodeToCopy->head;
+    result->id = nodeToCopy->id;
+    result->priority = nodeToCopy->priority;
+    result->visited = 0;
+    result->next = NULL;
+    return result;
+}
+
 struct AdjListNode *newAdjListNode(int dest, int weight) {
     struct AdjListNode *newNode =
             (struct AdjListNode *) malloc(sizeof(struct AdjListNode));
@@ -31,14 +45,6 @@ struct AdjListNode *newAdjListNode(int dest, int weight) {
     newNode->weight = weight;
     return newNode;
 } //v
-
-int buildNumber(char *str) {
-    int result = 0;
-    for (int i = 0; i < strlen(str); ++i) {
-        result += pow(10, strlen(str) - i - 1) * (str[i] - 48);
-    }
-    return result;
-}
 
 struct Graph *createGraph(int V) {
     struct Graph *graph = (struct Graph *) malloc(sizeof(struct Graph) + (V * sizeof(struct Node)));
@@ -52,6 +58,8 @@ struct Graph *createGraph(int V) {
         temp->id = i;
         temp->head = NULL;
         temp->next = NULL;
+        temp->visited =0;
+        temp->priority = INT_MAX;
 
         if (graph->head == NULL) {
             graph->head = temp;
@@ -110,7 +118,6 @@ void addEdge(struct Graph *graph, int src, int dest, int weight) {
         temp->next = NULL;
     }
 } //v
-//
 
 void addNode(struct Graph *graph, int id) {
     struct Node *temp = graph->head;
@@ -118,6 +125,7 @@ void addNode(struct Graph *graph, int id) {
     newNode->id = id;
     newNode->next = NULL;
     newNode->head = NULL;
+    newNode->visited =0;
     if (graph->head == NULL) {
         graph->head = newNode;
         graph->V++;
@@ -142,12 +150,12 @@ void addNode(struct Graph *graph, int id) {
     }
     temp->next = newNode;
     graph->V++;
-//    realloc(graph, sizeof(graph->V * sizeof(struct Node) + 1));
 } //v
 
 void deleteNode(struct Graph *graph, int id) {
     struct Node *currNode = graph->head;
     struct Node *prevNode = graph->head;
+//    if (graph->head == NULL) return;
     if (graph->head->id == id) {
         graph->head = graph->head->next;
         graph->V--;
@@ -250,14 +258,105 @@ void printGraph(struct Graph *graph) {
     }
 } //v
 
-int checkIfNum(char str[]) {
-    if (strlen(str) == 1) {
-        return isdigit(str);
+struct priorityQueue{
+    struct Node *head;
+};
+
+int peek(struct priorityQueue *pq){
+    return pq->head->id;
+}
+
+struct Node *pop(struct priorityQueue *pq){
+    struct Node *temp = pq->head;
+    struct Node *result = pq->head;
+    if (pq->head->next) {
+        pq->head = pq->head->next;
+        free(temp);
+    }else {
+        pq->head = NULL;
+//        free(temp);
     }
-    for (int i = 0; i < strlen(str); ++i) {
-        if (!isdigit(str[i])) return 0;
+    return result;
+}
+
+void push(struct priorityQueue *pq , struct Node *nodeToAdd){
+    struct Node* nodeToAddCopy = nodeCopy(nodeToAdd);
+    if (pq->head == NULL){
+        pq->head = nodeToAddCopy;
+        return;
     }
-    return 1;
+    struct Node *start = pq->head;
+    struct Node *prev = pq->head;
+    if (pq->head->priority <= nodeToAddCopy->priority){
+        nodeToAddCopy->next = pq->head;
+        pq->head = nodeToAddCopy;
+    }else {
+        while (start->next != NULL && start->next->priority < nodeToAddCopy->priority){
+            start = start->next;
+        }
+        nodeToAddCopy->next = start->next;
+        start->next = nodeToAddCopy;
+    }
+}
+
+int isEmpty(struct priorityQueue *pq){
+    return pq->head == NULL;
+}
+
+struct priotyQueue *buildPq(struct Graph *graph){
+    struct priorityQueue *pq =(struct priorityQueue*) malloc(sizeof(struct priorityQueue));
+    pq->head = NULL;
+    struct Node *temp = graph->head;
+
+    while (temp){
+        push(pq,temp);
+        temp = temp->next;
+    }
+    return pq;
+}
+
+struct Node *getNode(struct Graph *graph , int id){
+    struct Node *curr = graph->head;
+    while (curr){
+        if (curr->id == id){
+            return curr;
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
+int Dijkstra(struct Graph *graph , int src , int dest){
+    if (getNode(graph , src) == NULL || getNode(graph ,dest) == NULL) return -1;
+    struct priorityQueue *pq = (struct priorityQueue*) malloc(sizeof(struct priorityQueue));
+    pq->head = NULL;
+    struct Node *nodeToCoppy = getNode(graph ,src);
+    struct Node *curr = nodeCopy(nodeToCoppy);
+    curr->priority =0;
+    push(pq, curr);
+    curr->visited =1;
+    double shortest = INT_MAX;
+    if (graph->V <= 1) return 0;
+    while (!isEmpty(pq)){
+        curr = pop(pq);
+        curr->visited =1;
+
+        if (curr->head == NULL) continue;
+        struct AdjListNode *currEdge = curr->head;
+        struct Node *finalCurr = curr;
+        while (currEdge->next){
+            struct AdjListNode *edgeData = currEdge->next;
+            struct Node *adj = nodeCopy(getNode(graph , edgeData->dest));
+            double pathWeight = finalCurr->priority + edgeData->weight;
+            if (adj->priority > pathWeight){
+                adj->priority = pathWeight;
+            }
+            if (adj->visited == 0) push(pq,adj);
+            currEdge = currEdge->next;
+        }
+        if (getNode(graph , dest) != NULL && curr->id == dest) return curr->priority;
+    }
+    return -1;
 }
 
 int main() {
@@ -269,7 +368,7 @@ int main() {
     char inputIfA;
     char inputA1 = "R";
     while (1) {
-        if (inputA == 'x' || inputA == 'A' || inputA == 'B' || inputA == 'D' || inputA == 'S' || inputA == 'T') {
+        if (inputA == 'x' || inputA == 'A' || inputA == 'S') {
             input = inputA;
         } else {
             scanf("%s", &input);
@@ -279,8 +378,7 @@ int main() {
             graphCopy = createGraph(numOfNodes);
             int src;
             while (scanf("%s", &inputA)) {
-                if (inputA == 'x' || inputA == 'A' || inputA == 'B' || inputA == 'D' || inputA == 'S' ||
-                    inputA == 'T')
+                if (inputA == 'x' || inputA == 'A' || inputA == 'B' || inputA == 'D' || inputA == 'S' ||inputA == 'T')
                     break;
                 if (inputA == 'n') {
                     scanf("%d", &src);
@@ -319,9 +417,34 @@ int main() {
             scanf("%s", &input);
         }
 
+        if (input == 'S'){
+            int src;
+            int dest;
+            scanf("%d" , &src);
+            scanf("%d" , &dest);
+            printf("Dijsktra shortest path: %d" , Dijkstra(graph , src , dest));
+            scanf("%s" , &input);
+        }
+
         if (input == 'x') {
             printGraph(graph);
             return 0;
         }
     }
 }
+
+//int main(){
+//    struct Graph *graph = (struct Graph*) malloc(sizeof(struct Graph));
+//    graph = createGraph(4);
+//    addEdge(graph , 0 , 2, 5);
+//    addEdge(graph , 0 , 3, 3);
+//    addEdge(graph , 2 , 0, 4);
+//    addEdge(graph , 2 , 1, 1);
+//    addEdge(graph , 1 , 3, 7);
+//    addEdge(graph , 1 , 0, 2);
+//    int something = Dijkstra(graph , 2, 0);
+//    printf("%d" , something );
+//
+//
+//
+//}

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-#include "PriorityQueue.h"
 #include <limits.h>
 
 struct AdjListNode {
@@ -126,6 +125,7 @@ void addNode(struct Graph *graph, int id) {
     newNode->next = NULL;
     newNode->head = NULL;
     newNode->visited =0;
+    newNode->priority = INT_MAX;
     if (graph->head == NULL) {
         graph->head = newNode;
         graph->V++;
@@ -271,7 +271,7 @@ struct Node *pop(struct priorityQueue *pq){
     struct Node *result = pq->head;
     if (pq->head->next) {
         pq->head = pq->head->next;
-        free(temp);
+//        free(temp);
     }else {
         pq->head = NULL;
 //        free(temp);
@@ -286,8 +286,7 @@ void push(struct priorityQueue *pq , struct Node *nodeToAdd){
         return;
     }
     struct Node *start = pq->head;
-    struct Node *prev = pq->head;
-    if (pq->head->priority <= nodeToAddCopy->priority){
+    if (pq->head->priority > nodeToAddCopy->priority){
         nodeToAddCopy->next = pq->head;
         pq->head = nodeToAddCopy;
     }else {
@@ -303,16 +302,11 @@ int isEmpty(struct priorityQueue *pq){
     return pq->head == NULL;
 }
 
-struct priotyQueue *buildPq(struct Graph *graph){
-    struct priorityQueue *pq =(struct priorityQueue*) malloc(sizeof(struct priorityQueue));
-    pq->head = NULL;
-    struct Node *temp = graph->head;
-
-    while (temp){
-        push(pq,temp);
-        temp = temp->next;
+int contains(struct Graph* graph , int arr[] , int v){
+    for (int i = 0; i < graph->V; ++i) {
+        if (arr[i] == v) return 1;
     }
-    return pq;
+    return 0;
 }
 
 struct Node *getNode(struct Graph *graph , int id){
@@ -327,124 +321,144 @@ struct Node *getNode(struct Graph *graph , int id){
 }
 
 int Dijkstra(struct Graph *graph , int src , int dest){
-    if (getNode(graph , src) == NULL || getNode(graph ,dest) == NULL) return -1;
+    struct Node *temp = graph->head;
+    while (temp){
+        temp->priority = INT_MAX;
+        temp = temp->next;
+    }
+
+    int counter =0;
     struct priorityQueue *pq = (struct priorityQueue*) malloc(sizeof(struct priorityQueue));
     pq->head = NULL;
-    struct Node *nodeToCoppy = getNode(graph ,src);
-    struct Node *curr = nodeCopy(nodeToCoppy);
+    int visited[graph->V];
+    for (int i = 0; i < graph->V; ++i) {
+        visited[i] = -1;
+    }
+    getNode(graph , src)->priority =0;
+    struct Node *curr = nodeCopy(getNode(graph , src));
     curr->priority =0;
-    push(pq, curr);
-    curr->visited =1;
-    double shortest = INT_MAX;
-    if (graph->V <= 1) return 0;
+    push(pq,curr);
+
     while (!isEmpty(pq)){
         curr = pop(pq);
-        curr->visited =1;
-
-        if (curr->head == NULL) continue;
+        visited[counter] = curr->id;
+        counter++;
         struct AdjListNode *currEdge = curr->head;
-        struct Node *finalCurr = curr;
-        while (currEdge->next){
-            struct AdjListNode *edgeData = currEdge->next;
-            struct Node *adj = nodeCopy(getNode(graph , edgeData->dest));
-            double pathWeight = finalCurr->priority + edgeData->weight;
-            if (adj->priority > pathWeight){
-                adj->priority = pathWeight;
+        while (currEdge != NULL) {
+            int distance = currEdge->weight;
+            if (!contains(graph, visited, currEdge->dest)) {
+                int prevCost = getNode(graph, currEdge->dest)->priority;
+                int newCost = curr->priority + distance;
+                if (newCost < prevCost) {
+                    getNode(graph, currEdge->dest)->priority = newCost;
+                    struct Node *neighbor = nodeCopy(getNode(graph, currEdge->dest));
+                    push(pq, neighbor);
+                }
             }
-            if (adj->visited == 0) push(pq,adj);
             currEdge = currEdge->next;
         }
-        if (getNode(graph , dest) != NULL && curr->id == dest) return curr->priority;
     }
-    return -1;
+
+    return getNode(graph , dest)->priority;
 }
 
-int main() {
-    struct Graph *graph;
-    struct Graph *graphCopy;
-    char input;
-    char inputA;
-    int numOfNodes;
-    char inputIfA;
-    char inputA1 = "R";
-    while (1) {
-        if (inputA == 'x' || inputA == 'A' || inputA == 'S') {
-            input = inputA;
-        } else {
-            scanf("%s", &input);
-        }
-        if (input == 'A') {
-            scanf("%d", &numOfNodes);
-            graphCopy = createGraph(numOfNodes);
-            int src;
-            while (scanf("%s", &inputA)) {
-                if (inputA == 'x' || inputA == 'A' || inputA == 'B' || inputA == 'D' || inputA == 'S' ||inputA == 'T')
-                    break;
-                if (inputA == 'n') {
-                    scanf("%d", &src);
-                }
-                int dest, weight;
-                while (scanf("%d", &dest)) {
-                    if (inputA != ' ' && inputA != 'n') break;
 
-                    scanf("%d", &weight);
-                    addEdge(graphCopy, src, dest, weight);
-                    graph = graphCopy;
-                }
-            }
-            graph = graphCopy;
-        }
-        if (input == 'B') {
-            graphCopy = graph;
-            int newNode;
-            int newDest;
-            int weight;
-            inputA = "";
-            scanf("%d", &newNode);
-            addNode(graphCopy, newNode);
-            while (scanf("%d", &newDest)) {
-                scanf("%d", &weight);
-                addEdge(graphCopy, newNode, newDest, weight);
-                graph = graphCopy;
-            }
-            graph = graphCopy;
-        }
 
-        if (input == 'D') {
-            int delNode;
-            scanf("%d", &delNode);
-            deleteNode(graph, delNode);
-            scanf("%s", &input);
-        }
-
-        if (input == 'S'){
-            int src;
-            int dest;
-            scanf("%d" , &src);
-            scanf("%d" , &dest);
-            printf("Dijsktra shortest path: %d" , Dijkstra(graph , src , dest));
-            scanf("%s" , &input);
-        }
-
-        if (input == 'x') {
-            printGraph(graph);
-            return 0;
-        }
-    }
-}
-
-//int main(){
-//    struct Graph *graph = (struct Graph*) malloc(sizeof(struct Graph));
-//    graph = createGraph(4);
-//    addEdge(graph , 0 , 2, 5);
-//    addEdge(graph , 0 , 3, 3);
-//    addEdge(graph , 2 , 0, 4);
-//    addEdge(graph , 2 , 1, 1);
-//    addEdge(graph , 1 , 3, 7);
-//    addEdge(graph , 1 , 0, 2);
-//    int something = Dijkstra(graph , 2, 0);
-//    printf("%d" , something );
+//int main() {
+//    struct Graph *graph;
+//    struct Graph *graphCopy;
+//    char input;
+//    char inputA;
+//    int numOfNodes;
+//    char inputIfA;
+//    char inputA1 = "R";
+//    while (1) {
+//        if (inputA == 'x' || inputA == 'A' || inputA == 'S') {
+//            input = inputA;
+//        } else {
+//            scanf("%s", &input);
+//        }
+//        if (input == 'A') {
+//            scanf("%d", &numOfNodes);
+//            graphCopy = createGraph(numOfNodes);
+//            int src;
+//            while (scanf("%s", &inputA)) {
+//                if (inputA == 'x' || inputA == 'A' || inputA == 'B' || inputA == 'D' || inputA == 'S' ||inputA == 'T')
+//                    break;
+//                if (inputA == 'n') {
+//                    scanf("%d", &src);
+//                }
+//                int dest, weight;
+//                while (scanf("%d", &dest)) {
+//                    if (inputA != ' ' && inputA != 'n') break;
 //
+//                    scanf("%d", &weight);
+//                    addEdge(graphCopy, src, dest, weight);
+//                    graph = graphCopy;
+//                }
+//            }
+//            graph = graphCopy;
+//        }
+//        if (input == 'B') {
+//            graphCopy = graph;
+//            int newNode;
+//            int newDest;
+//            int weight;
+//            inputA = "";
+//            scanf("%d", &newNode);
+//            addNode(graphCopy, newNode);
+//            while (scanf("%d", &newDest)) {
+//                scanf("%d", &weight);
+//                addEdge(graphCopy, newNode, newDest, weight);
+//                graph = graphCopy;
+//            }
+//            graph = graphCopy;
+//        }
 //
+//        if (input == 'D') {
+//            int delNode;
+//            scanf("%d", &delNode);
+//            deleteNode(graph, delNode);
+//            scanf("%s", &input);
+//        }
 //
+//        if (input == 'S'){
+//            int src;
+//            int dest;
+//            scanf("%d" , &src);
+//            scanf("%d" , &dest);
+//            printf("Dijsktra shortest path: %d" , Dijkstra(graph , src , dest));
+//            scanf("%s" , &input);
+//        }
+//
+//        if (input == 'x') {
+//            printGraph(graph);
+//            return 0;
+//        }
+//    }
 //}
+
+int main(){
+    struct Graph *graph = (struct Graph*) malloc(sizeof(struct Graph));
+    graph = createGraph(4);
+    addEdge(graph , 0 , 2, 5);
+    addEdge(graph , 0 , 3, 3);
+    addEdge(graph , 2 , 0, 4);
+    addEdge(graph , 2 , 1, 1);
+    addEdge(graph , 1 , 3, 7);
+    addEdge(graph , 1 , 0, 2);
+//    graph->head->priority = 2;
+//    graph->head->next->priority =1;
+//    graph->head->next->next->priority =0;
+//    graph->head->next->next->next->priority = 3;
+//    struct priorityQueue *pq= (struct priorityQueue*) malloc(sizeof(struct priorityQueue));
+//    pq->head = NULL;
+//    push(pq,graph->head);
+//    push(pq,graph->head->next);
+//    push(pq,graph->head->next->next);
+    int something = Dijkstra(graph , 1, 3);
+    printf("%d" , something );
+
+
+
+}

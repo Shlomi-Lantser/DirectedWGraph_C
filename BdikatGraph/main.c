@@ -17,6 +17,7 @@ struct Node {
     int id;
     int priority;
     int visited;
+    int parent;
     struct AdjListNode *head;
     struct Node *next;
 }; //v
@@ -33,6 +34,7 @@ struct Node *nodeCopy(struct Node *nodeToCopy){
     result->priority = nodeToCopy->priority;
     result->visited = 0;
     result->next = NULL;
+    result->parent = nodeToCopy->parent;
     return result;
 }
 
@@ -231,7 +233,6 @@ void deleteGraph(struct Graph *graph) {
     }
     graph->head = NULL;
     graph->V = 0;
-    realloc(graph, sizeof(graph));
     graph->head = NULL;
 } //v
 
@@ -262,21 +263,20 @@ struct priorityQueue{
     struct Node *head;
 };
 
-int peek(struct priorityQueue *pq){
-    return pq->head->id;
+struct Node *peek(struct priorityQueue *pq){
+    return pq->head;
 }
 
 struct Node *pop(struct priorityQueue *pq){
     struct Node *temp = pq->head;
-    struct Node *result = pq->head;
     if (pq->head->next) {
         pq->head = pq->head->next;
 //        free(temp);
     }else {
-        pq->head = NULL;
 //        free(temp);
+        pq->head = NULL;
     }
-    return result;
+    free(temp);
 }
 
 void push(struct priorityQueue *pq , struct Node *nodeToAdd){
@@ -320,6 +320,10 @@ struct Node *getNode(struct Graph *graph , int id){
     return NULL;
 }
 
+struct nodePath{
+    struct Node *head;
+};
+
 int Dijkstra(struct Graph *graph , int src , int dest){
     struct Node *temp = graph->head;
     while (temp){
@@ -340,7 +344,8 @@ int Dijkstra(struct Graph *graph , int src , int dest){
     push(pq,curr);
 
     while (!isEmpty(pq)){
-        curr = pop(pq);
+        curr = nodeCopy(peek(pq));
+        pop(pq);
         visited[counter] = curr->id;
         counter++;
         struct AdjListNode *currEdge = curr->head;
@@ -352,17 +357,204 @@ int Dijkstra(struct Graph *graph , int src , int dest){
                 if (newCost < prevCost) {
                     getNode(graph, currEdge->dest)->priority = newCost;
                     struct Node *neighbor = nodeCopy(getNode(graph, currEdge->dest));
+                    neighbor->parent = curr->id;
                     push(pq, neighbor);
                 }
             }
             currEdge = currEdge->next;
         }
     }
-
+    printf("dijkstra : %d \n", getNode(graph,dest)->priority);
+    free(pq);
+    free(curr);
     return getNode(graph , dest)->priority;
 }
 
+struct nodePath *DijkstraPath(struct Graph *graph , int src , int dest){
+    struct Node *temp = graph->head;
+    while (temp){
+        temp->priority = INT_MAX;
+        temp = temp->next;
+    }
 
+    int counter =0;
+    struct priorityQueue *pq = (struct priorityQueue*) malloc(sizeof(struct priorityQueue));
+    pq->head = NULL;
+    int visited[graph->V];
+    for (int i = 0; i < graph->V; ++i) {
+        visited[i] = -1;
+    }
+    getNode(graph , src)->priority =0;
+    struct Node *curr = nodeCopy(getNode(graph , src));
+    curr->priority =0;
+    push(pq,curr);
+
+    while (!isEmpty(pq)){
+        curr = nodeCopy(peek(pq));
+        pop(pq);
+        visited[counter] = curr->id;
+        counter++;
+        struct AdjListNode *currEdge = curr->head;
+        while (currEdge != NULL) {
+            int distance = currEdge->weight;
+            if (!contains(graph, visited, currEdge->dest)) {
+                int prevCost = getNode(graph, currEdge->dest)->priority;
+                int newCost = curr->priority + distance;
+                if (newCost < prevCost) {
+                    getNode(graph, currEdge->dest)->priority = newCost;
+                    struct Node *neighbor = nodeCopy(getNode(graph, currEdge->dest));
+                    getNode(graph , currEdge->dest)->parent = curr->id;
+                    neighbor->parent = curr->id;
+                    push(pq, neighbor);
+                }
+            }
+            currEdge = currEdge->next;
+        }
+    }
+    struct Node *destNode = nodeCopy(getNode(graph , dest));
+    struct nodePath *path = (struct nodePath*) malloc(sizeof(struct nodePath));
+    struct Node *buildingPath = nodeCopy(getNode(graph , dest));
+    path->head = buildingPath;
+    while (destNode){
+        if (destNode->id == src) break;
+        destNode = nodeCopy(getNode(graph , destNode->parent));
+//        buildingPath->next = destNode;
+        destNode->next = path->head;
+        path->head = destNode;
+//        buildingPath = buildingPath->next;
+    }
+
+    return path;
+}
+
+int calculatePath(struct nodePath *path){
+    if (path == NULL) return INT_MAX;
+
+    int result =0;
+    struct Node *pathCurr = path->head;
+    while (pathCurr){
+        if (pathCurr->next == NULL){
+            break;
+        }
+        struct AdjListNode *currEdge = pathCurr->head;
+        while (currEdge){
+            if (currEdge->dest == pathCurr->next->id){
+                result += currEdge->weight;
+                break;
+            }
+            currEdge = currEdge->next;
+        }
+        pathCurr = pathCurr->next;
+    }
+    return result;
+}
+
+int pathContainsAll(struct nodePath *path , struct nodePath *cities){
+    if (path == NULL) return 0;
+    struct Node *currCity = cities->head;
+    while (currCity){
+        struct Node *currPath = path->head;
+        while (currPath){
+            if (currCity->id == currPath->id) break;
+            if (currPath->next == NULL) return 0;
+            currPath = currPath->next;
+        }
+        currCity = currCity->next;
+    }
+    return 1;
+}
+
+struct Node *lastNode(struct nodePath *path){
+    struct Node *curr = path->head;
+    while (curr->next){
+        curr = curr->next;
+    }
+    return curr;
+}
+//3 2 1 3
+
+int TSP(struct Graph *graph){
+    int result =INT_MAX;
+    int nodeId;
+    int numOfCities;
+    int i=1;
+    scanf("%d" , &numOfCities);
+    struct nodePath *arrayOfLists[numOfCities*numOfCities - numOfCities];
+    struct nodePath *arrayNotContains[numOfCities*numOfCities - numOfCities];
+    int counter1=0;
+    for (int k = 0; k < numOfCities*numOfCities - numOfCities; ++k) {
+        arrayOfLists[k]= NULL;
+        arrayNotContains[k] = NULL;
+    }
+    int counter =0;
+    struct nodePath *cities = (struct nodePath*) malloc(sizeof(struct nodePath));
+    cities->head = NULL;
+    while (i != numOfCities){
+        scanf("%d" , &nodeId);
+        if (cities->head == NULL){
+            cities->head = nodeCopy(getNode(graph , nodeId));
+        }else {
+            struct Node *currCity = cities->head;
+            while (currCity->next) {
+                currCity = currCity->next;
+            }
+            i++;
+            currCity->next = nodeCopy(getNode(graph, nodeId));
+        }
+    }
+    struct Node *srcNode = cities->head;
+    while (srcNode){
+        struct Node *destNode = cities->head;
+        while (destNode){
+            if (destNode == srcNode){
+                destNode = destNode->next;
+                continue;
+            }
+            if (srcNode->head == NULL) break;
+            arrayOfLists[counter] = DijkstraPath(graph , srcNode->id , destNode->id);
+            counter++;
+            destNode = destNode->next;
+        }
+        srcNode = srcNode->next;
+    }
+    for (int j = 0; j < numOfCities*numOfCities - numOfCities; ++j) {
+        int checkk = calculatePath(arrayOfLists[j]);
+        int boolll = pathContainsAll(arrayOfLists[j] , cities);
+        if (boolll == 1 && checkk < result){
+            result = checkk;
+        }
+    }
+    for (int q = 0; q < numOfCities*numOfCities - numOfCities; ++q) {
+        int boolll = pathContainsAll(arrayOfLists[q] , cities);
+        if (boolll == 0){
+            arrayNotContains[counter1] = arrayOfLists[q];
+        }
+    }
+    for (int j = 0; j < numOfCities*numOfCities - numOfCities; ++j) {
+        if (arrayOfLists[j] == NULL) break;
+        for (int k = 0; k < numOfCities*numOfCities - numOfCities; ++k) {
+            if (arrayNotContains[k] == NULL) break;
+            if (arrayNotContains[k] == arrayOfLists[j]) continue;
+            if (lastNode(arrayNotContains[j])->id == arrayOfLists[k]->head->id && lastNode(arrayNotContains[j])->id != lastNode(arrayOfLists[j])->id){
+                lastNode(arrayNotContains[k])->next = arrayOfLists[j]->head;
+            }
+        }
+    }
+
+    for (int j = 0; j < numOfCities*numOfCities - numOfCities; ++j) {
+        int checkk = calculatePath(arrayNotContains[j]);
+        int boolll = pathContainsAll(arrayNotContains[j] , cities);
+        if (boolll == 1 && checkk < result){
+            result = checkk;
+        }
+    }
+
+    free(cities);
+
+
+    printf("TSP : %d" , result);
+    return result;
+}
 
 //int main() {
 //    struct Graph *graph;
@@ -427,7 +619,7 @@ int Dijkstra(struct Graph *graph , int src , int dest){
 //            int dest;
 //            scanf("%d" , &src);
 //            scanf("%d" , &dest);
-//            printf("Dijsktra shortest path: %d" , Dijkstra(graph , src , dest));
+//            Dijkstra(graph , src , dest);
 //            scanf("%s" , &input);
 //        }
 //
@@ -447,18 +639,9 @@ int main(){
     addEdge(graph , 2 , 1, 1);
     addEdge(graph , 1 , 3, 7);
     addEdge(graph , 1 , 0, 2);
-//    graph->head->priority = 2;
-//    graph->head->next->priority =1;
-//    graph->head->next->next->priority =0;
-//    graph->head->next->next->next->priority = 3;
-//    struct priorityQueue *pq= (struct priorityQueue*) malloc(sizeof(struct priorityQueue));
-//    pq->head = NULL;
-//    push(pq,graph->head);
-//    push(pq,graph->head->next);
-//    push(pq,graph->head->next->next);
-    int something = Dijkstra(graph , 1, 3);
-    printf("%d" , something );
-
+    Dijkstra(graph , 2, 0);
+    deleteGraph(graph);
+    free(graph);
 
 
 }

@@ -8,8 +8,10 @@ The main veriables which we use in this class are:
 
 |Main Functions|Explenation|RunTime|
 |---|---|---|
+|createGraph| making new graph |O(V+E)
+|deleteGraph| deleting and free al object that used |O(V+E)
 |add_node| adding a new node to our data structure(if his id exsist)|O(V+E)
-|add_edge| create new edge in the graph|O(V + E)
+|add_edge| create new edge in the graph|O(V+E)
 |deleteNode| in this function we removing a node from our graph, we need to find the givven id delete the edge go from it and into it|O(V+E)
 
 

@@ -8,17 +8,17 @@ The main veriables which we use in this class are:
 
 |Main Functions|Explenation|RunTime|
 |---|---|---|
-|add_node| adding a new node to our data structure(if his id exsist)|O(|V|+|E|)
-|add_edge| create new edge in the graph|O(|V| + |E|)
-|deleteNode| in this function we removing a node from our graph, we need to find the givven id delete the edge go from it and into it|O(|V|+|E|)
+|add_node| adding a new node to our data structure(if his id exsist)|O(V+E)
+|add_edge| create new edge in the graph|O(V + E)
+|deleteNode| in this function we removing a node from our graph, we need to find the givven id delete the edge go from it and into it|O(V+E)
 
 
 ## Algorithms
    
 |Main Functions|Explenation|RunTime|
 |---|---|---|
-|Djikstra shortest Path| in this function i have used in the Dijkstra algorythm, at first we update al the nodes "weight" to inf execept the src node which we update to 0, we ran on all the nodes and update their weight to the min, and also saved the prev node of each node in the shortest path in aim to return the distance between the nodes we walk in |O(|E| + |V|log|V|)|
-|TSP| in a given list of cities we need to find the shortest path distance, int path which contain all of them and the weight of it|O(n^4)
+|Djikstra shortest Path| in this function i have used in the Dijkstra algorythm, at first we update al the nodes "weight" to inf execept the src node which we update to 0, we ran on all the nodes and update their weight to the min, and also saved the prev node of each node in the shortest path in aim to return the distance between the nodes we walk in |O(E + VlogV)
+|TSP| in a given list of cities we need to find the shortest path distance, int path which contain all of them and the weight of it|O(V^4)
 
 ## Main (exe)
 

@@ -23,8 +23,8 @@ The main veriables which we use in this class are:
 ## Main (exe)
 
 in the main the algorithms works by a command from the user :
-  A (int)- creating a new graph with number of nodes that the user puts. 
-  B (int)- adding a new node to the graph , if the given id exists it deletes all the edges that going out from this node.
-  D (int)- deleting a node and deleting all the edges that going out from the node and eigher the edges going in the given node.
-  S (int ,int)- doing Djikstra shortest path to find the minimum distance bewteed 2 given nodes.
-  T (int v) , (int,int,int....->v times)- doing TSP algorithm with giving nodes (cities) that must include the path.
+ * A (int)- creating a new graph with number of nodes that the user puts. 
+ * B (int)- adding a new node to the graph , if the given id exists it deletes all the edges that going out from this node.
+ * D (int)- deleting a node and deleting all the edges that going out from the node and eigher the edges going in the given node.
+ * S (int ,int)- doing Djikstra shortest path to find the minimum distance bewteed 2 given nodes.
+ * T (int v) , (int,int,int....->v times)- doing TSP algorithm with giving nodes (cities) that must include the path.

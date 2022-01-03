@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = C$:/Users/slant/CLionProjects/BdikatGraph/cmake-build-debug/
+cmake_ninja_workdir = C$:/Users/slant/CLionProjects/DirectedWGraph_C/cmake-build-debug/
 # =============================================================================
 # Object build statements for EXECUTABLE target BdikatGraph
 
@@ -49,7 +49,7 @@ cmake_ninja_workdir = C$:/Users/slant/CLionProjects/BdikatGraph/cmake-build-debu
 
 build cmake_object_order_depends_target_BdikatGraph: phony || CMakeFiles/BdikatGraph.dir
 
-build CMakeFiles/BdikatGraph.dir/main.c.obj: C_COMPILER__BdikatGraph_Debug C$:/Users/slant/CLionProjects/BdikatGraph/main.c || cmake_object_order_depends_target_BdikatGraph
+build CMakeFiles/BdikatGraph.dir/main.c.obj: C_COMPILER__BdikatGraph_Debug C$:/Users/slant/CLionProjects/DirectedWGraph_C/main.c || cmake_object_order_depends_target_BdikatGraph
   DEP_FILE = CMakeFiles\BdikatGraph.dir\main.c.obj.d
   FLAGS = -g -std=gnu99
   OBJECT_DIR = CMakeFiles\BdikatGraph.dir
@@ -81,7 +81,7 @@ build BdikatGraph.exe: C_EXECUTABLE_LINKER__BdikatGraph_Debug CMakeFiles/BdikatG
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D C:\Users\slant\CLionProjects\BdikatGraph\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2021.3\bin\cmake\win\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = cmd.exe /C "cd /D C:\Users\slant\CLionProjects\DirectedWGraph_C\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2021.3\bin\cmake\win\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -92,7 +92,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D C:\Users\slant\CLionProjects\BdikatGraph\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2021.3\bin\cmake\win\bin\cmake.exe" --regenerate-during-build -SC:\Users\slant\CLionProjects\BdikatGraph -BC:\Users\slant\CLionProjects\BdikatGraph\cmake-build-debug"
+  COMMAND = cmd.exe /C "cd /D C:\Users\slant\CLionProjects\DirectedWGraph_C\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2021.3\bin\cmake\win\bin\cmake.exe" --regenerate-during-build -SC:\Users\slant\CLionProjects\DirectedWGraph_C -BC:\Users\slant\CLionProjects\DirectedWGraph_C\cmake-build-debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -110,7 +110,7 @@ build BdikatGraph: phony BdikatGraph.exe
 # =============================================================================
 
 #############################################
-# Folder: C:/Users/slant/CLionProjects/BdikatGraph/cmake-build-debug
+# Folder: C:/Users/slant/CLionProjects/DirectedWGraph_C/cmake-build-debug
 
 build all: phony BdikatGraph.exe
 

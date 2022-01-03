@@ -237,7 +237,7 @@ void deleteGraph(struct Graph *graph) {
 } //v
 
 void printGraph(struct Graph *graph) {
-    if (graph->V == 0) {
+    if (graph->V == 0 || graph == NULL) {
         printf("Empty Graph!");
         return;
     }
@@ -364,7 +364,7 @@ int Dijkstra(struct Graph *graph , int src , int dest){
             currEdge = currEdge->next;
         }
     }
-    printf("dijkstra : %d \n", getNode(graph,dest)->priority);
+    printf("Shortest path distance is: %d \n", getNode(graph,dest)->priority);
     free(pq);
     free(curr);
     return getNode(graph , dest)->priority;
@@ -465,6 +465,7 @@ int pathContainsAll(struct nodePath *path , struct nodePath *cities){
 }
 
 struct Node *lastNode(struct nodePath *path){
+    if (path == NULL) return NULL;
     struct Node *curr = path->head;
     while (curr->next){
         curr = curr->next;
@@ -524,32 +525,6 @@ int TSP(struct Graph *graph){
             result = checkk;
         }
     }
-    for (int q = 0; q < numOfCities*numOfCities - numOfCities; ++q) {
-        int boolll = pathContainsAll(arrayOfLists[q] , cities);
-        if (boolll == 0){
-            arrayNotContains[counter1] = arrayOfLists[q];
-        }
-    }
-    for (int j = 0; j < numOfCities*numOfCities - numOfCities; ++j) {
-        if (arrayOfLists[j] == NULL) break;
-        for (int k = 0; k < numOfCities*numOfCities - numOfCities; ++k) {
-            if (arrayNotContains[k] == NULL) break;
-            if (arrayNotContains[k] == arrayOfLists[j]) continue;
-            if (lastNode(arrayNotContains[j])->id == arrayOfLists[k]->head->id && lastNode(arrayNotContains[j])->id != lastNode(arrayOfLists[j])->id){
-                lastNode(arrayNotContains[k])->next = arrayOfLists[j]->head;
-            }
-        }
-    }
-
-    for (int j = 0; j < numOfCities*numOfCities - numOfCities; ++j) {
-        int checkk = calculatePath(arrayNotContains[j]);
-        int boolll = pathContainsAll(arrayNotContains[j] , cities);
-        if (boolll == 1 && checkk < result){
-            result = checkk;
-        }
-    }
-
-
     struct Node *currCity = cities->head;
     struct Node *prevCity = cities->head;
     while (currCity){
@@ -559,7 +534,7 @@ int TSP(struct Graph *graph){
     }
     free(cities);
 
-    printf("TSP : %d" , result);
+    printf("TSP : %d \n" , result);
     return result;
 }
 
@@ -572,7 +547,7 @@ int main() {
     char inputIfA;
     char inputA1 = "R";
     while (1) {
-        if (inputA == 'x' || inputA == 'A' || inputA == 'S') {
+        if (inputA == 'x' || inputA == 'A' || inputA == 'S' || inputA == 'T') {
             input = inputA;
         } else {
             scanf("%s", &input);
@@ -633,6 +608,11 @@ int main() {
         if (input == 'x') {
             printGraph(graph);
             return 0;
+        }
+
+        if (input == 'T'){
+            TSP(graph);
+            scanf("%s" , &inputA);
         }
     }
 }

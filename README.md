@@ -30,3 +30,4 @@ in the main the algorithms works by a command from the user :
  * D (int)- deleting a node and deleting all the edges that going out from the node and eigher the edges going in the given node.
  * S (int ,int)- doing Djikstra shortest path to find the minimum distance bewteed 2 given nodes.
  * T (int v) , (int,int,int....->v times)- doing TSP algorithm with giving nodes (cities) that must include the path.
+ * x - printing the graph and stop running.
